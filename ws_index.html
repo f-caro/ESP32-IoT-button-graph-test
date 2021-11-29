@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Sensor Readings</title>
+
+        <script type="text/javascript" src="moment.min.js"></script>
+        <script type="text/javascript" src="Chart.min.js"></script>
+        <script type="text/javascript" src="chartjs-plugin-streaming.js"></script>
+
+    </head>
+    <body>
+        <div id="Topside">
+            <h2>Sensor 1 Readings</h2>
+            </br>
+            </br>
+            <input type="button" value="HelloWorld" onclick="startingWS()">    
+            <!-- <input type="button" value="++1" onclick="incCounter()" > -->
+        </div>
+        <canvas id="lineChartPulses" width="50" height="50"></canvas>
+        <canvas id="lineChartTiming" width="50" height="50"></canvas>
+
+        <script type="text/javascript">
+
+            var ctxPulses = document.getElementById('lineChartPulses');
+            var ctxTiming = document.getElementById('lineChartTiming');
+            var topSide = document.getElementById('Topside');
+
+            var chartSpaceWidth = window.innerWidth;
+            var chartSpaceHeight = window.innerHeight - topSide.offsetHeight - Math.floor(0.05*window.innerHeight);
+            ctxPulses.width = chartSpaceWidth;
+            ctxPulses.height = Math.floor( chartSpaceHeight/2 ) ;
+
+            ctxTiming.width = chartSpaceWidth;
+            ctxTiming.height = Math.floor( chartSpaceHeight/2 );
+        </script>
+        <script type="text/javascript">            
+            var pulses_datalabelStructure = [];//[0,1,2,3,4,5];
+            var pulses_dataValuesArr = [];//[12, 19, 3, 5, 2, 3];
+            var pulses_databgColourArr = [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ];
+
+            var pulses_databrdrColour = [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ];
+
+            var pulses_datasetsStructure =[{
+                            label: '# of Short Pulses per Big Pulse',
+                            data: pulses_dataValuesArr ,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            //backgroundColor: databgColourArr,
+                            //borderColor: databrdrColour,
+                            borderWidth: 1,
+                            lineTension: 0,
+                        }];
+            var pulses_dataChartjsObj = {
+                        labels: pulses_datalabelStructure,
+                        datasets: pulses_datasetsStructure 
+                    };
+            var chartPulses = new Chart(ctxPulses, 
+                {
+                    type: 'line',
+                    data: pulses_dataChartjsObj,
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+        </script>
+        <script type="text/javascript">
+            var timing_datalabelStructure = [];//[0,1,2,3,4,5];
+            var timing_dataValuesArr = [];//[12, 19, 3, 5, 2, 3];
+            var timing_databgColourArr = [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ];
+
+            var timing_databrdrColour = [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ];
+
+            var timing_datasetsStructure =[{
+                            label: 'timing (ms) per Big Pulse',
+                            data: timing_dataValuesArr ,
+                            backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                            borderColor: 'rgba(0, 255, 0, 1)',
+                            //backgroundColor: databgColourArr,
+                            //borderColor: databrdrColour,
+                            borderWidth: 1,
+                            lineTension: 0
+                        }];
+            var timing_dataChartjsObj = {
+                        labels: timing_datalabelStructure,
+                        datasets: timing_datasetsStructure 
+                    };
+            var chartTiming = new Chart(ctxTiming, 
+                {
+                    type: 'line',
+                    data: timing_dataChartjsObj,
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+        </script>
+
+        <script type="text/javascript">
+
+        var ws ;
+        var counter = 0;
+        var msgJson = "";
+
+
+        function startingWS ()
+        {
+            ws = new WebSocket("ws://" + window.location.hostname);
+
+            ws.onopen = function(evt) { 
+              console.log("Connection open ..."); 
+              ws.send("Hello WebSockets!");
+            };
+
+            ws.onmessage = function(evt) {
+              console.log( "Received Message: " + evt.data);
+              msgJson = JSON.parse(evt.data);
+              if(msgJson.slowCounter > counter)
+              {
+                console.log(msgJson.timeDiff);
+              }
+              pulses_dataValuesArr.push(msgJson.fastCounter);
+              pulses_datalabelStructure.push(counter);
+
+              timing_dataValuesArr.push(msgJson.timeDiff);
+              timing_datalabelStructure.push(counter);
+
+            chartPulses.update();
+            chartTiming.update();
+
+              counter += 1;
+              //
+            };
+
+            ws.onclose = function(evt) {
+              console.log("Connection closed.");
+            };
+
+            ws.closeConn = () => {
+                ws.close();
+            }
+        }
+
+
+        function incCounter() 
+        {
+            counter = counter + 1;
+            if( ws.readyState == ws.OPEN )
+            ws.send( counter.toString() );
+            return;
+        }
+        </script>
+    </body>
+</html>
