@@ -1,5 +1,7 @@
 # ESP32-IoT-button-graph-test
-ESP32 recording button presses, and serving webpage that graphs the numbers over time.
+ESP32 recording button presses, and serving webpage via webSockets in order to graph the responses.
+The objective was to test the ESP32 webSocket implementation written in microPython.
+
 
 
 ### Firmware was compiled from scratch in order to accomodate Websocket MicroPython Server files into 4MB flash memory.
@@ -39,4 +41,48 @@ ws_index.html
 > call JS scripts :  moment.min.js ( datetime libs ); Chart.min.js ( Chart libs in HTML5 <canvas> )  
 >
 
-#TODO : Need to further elaborate on the task at hand.
+
+
+The following snippet creates a webSocket instance.  The downside, is that the connection disconnects, but doesn't reconnect, if no activity detected. 
+
+```
+        function startingWS ()
+        {
+            ws = new WebSocket("ws://" + window.location.hostname);
+
+            ws.onopen = function(evt) { 
+              console.log("Connection open ..."); 
+              ws.send("Hello WebSockets!");
+            };
+
+            ws.onmessage = function(evt) {
+              console.log( "Received Message: " + evt.data);
+              msgJson = JSON.parse(evt.data);
+              if(msgJson.slowCounter > counter)
+              {
+                console.log(msgJson.timeDiff);
+              }
+              pulses_dataValuesArr.push(msgJson.fastCounter);
+              pulses_datalabelStructure.push(counter);
+
+              timing_dataValuesArr.push(msgJson.timeDiff);
+              timing_datalabelStructure.push(counter);
+
+            chartPulses.update();
+            chartTiming.update();
+
+              counter += 1;
+              //
+            };
+
+            ws.onclose = function(evt) {
+              console.log("Connection closed.");
+            };
+
+            ws.closeConn = () => {
+                ws.close();
+            }
+        }
+```
+
+
