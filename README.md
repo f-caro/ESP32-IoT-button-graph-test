@@ -8,6 +8,7 @@ The objective was to test the ESP32 webSocket implementation written in microPyt
 > Pin 19 keeps track of `fastCountPin`, i.o.w.  high freq pulses.
 > Pin 18 keeps track of `slowCountPin`, i.o.w.  low freq pulses (acts like a reset button to Pin 19 counter).
 
+---
 
 
 Used : WebSocket libs [ jczic / MicroWebSrv2 ](https://github.com/jczic/MicroWebSrv2/) 
