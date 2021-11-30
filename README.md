@@ -2,8 +2,15 @@
 ESP32 recording button presses, and serving webpage via webSockets in order to graph the responses.
 The objective was to test the ESP32 webSocket implementation written in microPython.
 
+> To implement, upload `firmware.bin` to ESP32-dev board
+> copy all `*.py` files and `*.html/js` to ESP32 root directory.
+> connect two buttons, each with pull up resistors (1 KOhm), on pins 18 and 19 
+> Pin 19 keeps track of `fastCountPin`, i.o.w.  high freq pulses.
+> Pin 18 keeps track of `slowCountPin`, i.o.w.  low freq pulses (acts like a reset button to Pin 19 counter).
 
 
+
+Used : WebSocket libs [ jczic / MicroWebSrv2 ](https://github.com/jczic/MicroWebSrv2/) 
 ### Firmware was compiled from scratch in order to accomodate Websocket MicroPython Server files into 4MB flash memory.
 
 Need to find the website that showed me howto compile ESP32 firmware in Linux Mint  (Was not an easy task.  Lots of trial and error).
